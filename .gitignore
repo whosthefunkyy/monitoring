@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+
+# Environment
+.env
+
+# Grafana
+grafana-data/
+
+# Prometheus data
+prometheus-data/
+
+# Docker volumes
+data/
+
+# Go
+bin/
+*.exe
+
+# IDE
+.vscode/
+.idea/

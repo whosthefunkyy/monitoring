@@ -1,0 +1,59 @@
+version: "3.8"
+
+services:
+  go-api:
+    build: ./app
+    ports:
+      - "8081:8080"
+  grafana:
+    image: grafana/grafana:latest
+    ports: 
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+    
+  prometheus:
+    image: prom/prometheus:latest
+    ports: 
+      - "9090:9090"
+    volumes: 
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    ports: 
+      - "9093:9093"
+    volumes:
+      - ./alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+  node-exporter:
+    image: prom/node-exporter:latest
+    ports:
+      - "9100:9100"
+      
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./promtail-config.yml:/etc/promtail/config.yml
+    command: -config.file=/etc/promtail/config.yml
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:r  
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+volumes:
+  grafana-data:
