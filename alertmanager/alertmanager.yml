@@ -7,8 +7,8 @@ route:
 receivers:
   - name: telegram
     telegram_configs:
-      - bot_token: "8680813812:AAHjjeyTcUDlPxCse-i4b-6iN0RRU_ScspQ"
-        chat_id: 394466153
+      - bot_token: #### "your telegram bot token"
+        chat_id: #### your chat id
         message: |
           {{ range .Alerts }}
           Alert: {{ .Labels.alertname }}
