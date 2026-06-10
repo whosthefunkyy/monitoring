@@ -8,30 +8,34 @@ graph LR
     classDef alert fill:#DF2626,stroke:#fff,stroke-width:2px,color:#fff;
     classDef tg fill:#0088cc,stroke:#fff,stroke-width:2px,color:#fff;
 
-    %% Секция Метрик (Prometheus)
-    subgraph Metrics_Pipeline [Metrics Pipeline]
-        Node[Node Exporter]:::collector -->|Scrapes| Prom[Prometheus Server]:::prom
-        Cadvisor[cAdvisor]:::collector -->|Scrapes| Prom
-        GoAPI[Go API Metrics]:::collector -->|Scrapes| Prom
+    %% Источники данных (Слева)
+    subgraph Data_Sources [Data Sources]
+        Node[Node Exporter]:::collector
+        Cadvisor[cAdvisor]:::collector
+        GoAPI[Go API Metrics]:::collector
+        Logs[Application Logs]:::loki
     end
 
-    %% Секция Логов (Loki)
-    subgraph Logs_Pipeline [Logs Pipeline]
-        Logs[Application Logs] -->|Collects| Tail[Promtail]:::loki
-        Tail -->|Pushes| Loki[Grafana Loki]:::loki
-    end
+    %% Сборщики и Хранилища (В центре)
+    Logs -->|Collects| Tail[Promtail]:::loki
+    Tail -->|Pushes| Loki[Grafana Loki]:::loki
 
-    %% Визуализация и Алертинг
+    Node -->|Scrapes| Prom[Prometheus Server]:::prom
+    Cadvisor -->|Scrapes| Prom
+    GoAPI -->|Scrapes| Prom
+
+    %% Визуализация и Алертинг (Справа)
+    Grafana[Grafana Dashboards]:::grafana
+    Prom -.->|Queries Metrics| Grafana
+    Loki -.->|Queries Logs| Grafana
+
     Prom -->|1. Fires Alerts| AM[Alertmanager]:::alert
     AM -->|2. Sends Notification| TG[Telegram Bot]:::tg
 
-    %% Grafana как единый UI
-    Grafana[Grafana Dashboards]:::grafana -.->|Queries Metrics| Prom
-    Grafana -.->|Queries Logs| Loki
-
-    %% Настройка связей для Grafana
+    %% Принудительное выравнивание для красивой сетки
     style Grafana fill:#F26122,stroke:#1F1F22,stroke-width:2px,color:#fff;
 ```
+
 
 # Monitoring Stack with Prometheus, Grafana, Loki & Alertmanager
 
