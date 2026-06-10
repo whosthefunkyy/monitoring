@@ -1,3 +1,38 @@
+```mermaid
+graph LR
+    %% Стилизация блоков
+    classDef collector fill:#E6522C,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef prom fill:#E6522C,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef loki fill:#F1A325,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef grafana fill:#F26122,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef alert fill:#DF2626,stroke:#fff,stroke-width:2px,color:#fff;
+    classDef tg fill:#0088cc,stroke:#fff,stroke-width:2px,color:#fff;
+
+    %% Секция Метрик (Prometheus)
+    subgraph Metrics_Pipeline [Metrics Pipeline]
+        Node[Node Exporter]:::collector -->|Scrapes| Prom[Prometheus Server]:::prom
+        Cadvisor[cAdvisor]:::collector -->|Scrapes| Prom
+        GoAPI[Go API Metrics]:::collector -->|Scrapes| Prom
+    end
+
+    %% Секция Логов (Loki)
+    subgraph Logs_Pipeline [Logs Pipeline]
+        Logs[Application Logs] -->|Collects| Tail[Promtail]:::loki
+        Tail -->|Pushes| Loki[Grafana Loki]:::loki
+    end
+
+    %% Визуализация и Алертинг
+    Prom -->|1. Fires Alerts| AM[Alertmanager]:::alert
+    AM -->|2. Sends Notification| TG[Telegram Bot]:::tg
+
+    %% Grafana как единый UI
+    Grafana[Grafana Dashboards]:::grafana -.->|Queries Metrics| Prom
+    Grafana -.->|Queries Logs| Loki
+
+    %% Настройка связей для Grafana
+    style Grafana fill:#F26122,stroke:#1F1F22,stroke-width:2px,color:#fff;
+```
+
 # Monitoring Stack with Prometheus, Grafana, Loki & Alertmanager
 
 ## Overview
