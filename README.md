@@ -8,24 +8,24 @@ graph LR
     classDef alert fill:#DF2626,stroke:#fff,stroke-width:2px,color:#fff;
     classDef tg fill:#0088cc,stroke:#fff,stroke-width:2px,color:#fff;
 
-    %% Пайплайн Логов (Push)
+    %% Пайплайн Логов (Стрелки указывают от активного компонента к источнику/приемнику)
     subgraph Logs_Pipeline [Logs Pipeline - Push]
-        Logs[Application Logs] -->|Reads| Tail[Promtail]:::loki
-        Tail -->|Pushes Logs| Loki[Grafana Loki]:::loki
+        Tail[Promtail]:::loki -->|Reads| Logs[Application Logs]
+        Tail -->|Pushes Logs to| Loki[Grafana Loki]:::loki
     end
 
     %% Пайплайн Метрик (Pull)
     subgraph Metrics_Pipeline [Metrics Pipeline - Pull]
-        Prom[Prometheus Server]:::prom -->|Pulls Metrics| Node[Node Exporter]:::collector
-        Prom -->|Pulls Metrics| Cadvisor[cAdvisor]:::collector
-        Prom -->|Pulls Metrics| GoAPI[Go API Metrics]:::collector
+        Prom[Prometheus Server]:::prom -->|Pulls Metrics from| Node[Node Exporter]:::collector
+        Prom -->|Pulls Metrics from| Cadvisor[cAdvisor]:::collector
+        Prom -->|Pulls Metrics from| GoAPI[Go API Metrics]:::collector
     end
 
-    %% Визуализация
+    %% Визуализация (Grafana запрашивает данные)
     Grafana[Grafana Dashboards]:::grafana -->|Queries Metrics| Prom
     Grafana -->|Queries Logs| Loki
 
-    %% Оповещения (Вынесено отдельно для правильного рендеринга без пересечений)
+    %% Оповещения
     Prom -.->|Fires Alerts| AM[Alertmanager]:::alert
     AM -->|Sends Notification| TG[Telegram Bot]:::tg
 
