@@ -8,33 +8,31 @@ graph LR
     classDef alert fill:#DF2626,stroke:#fff,stroke-width:2px,color:#fff;
     classDef tg fill:#0088cc,stroke:#fff,stroke-width:2px,color:#fff;
 
-    %% Источники данных (Слева)
-    subgraph Data_Sources [Data Sources]
-        Node[Node Exporter]:::collector
-        Cadvisor[cAdvisor]:::collector
-        GoAPI[Go API Metrics]:::collector
-        Logs[Application Logs]:::loki
+    %% Пайплайн Логов (Push-модель)
+    subgraph Logs_Pipeline [Logs Pipeline - Push]
+        Logs[Application Logs] -->|Reads| Tail[Promtail]:::loki
+        Tail -->|Pushes Logs| Loki[Grafana Loki]:::loki
     end
 
-    %% Сборщики и Хранилища (В центре)
-    Logs -->|Collects| Tail[Promtail]:::loki
-    Tail -->|Pushes| Loki[Grafana Loki]:::loki
+    %% Пайплайн Метрик (Pull-модель)
+    subgraph Metrics_Pipeline [Metrics Pipeline - Pull]
+        Prom[Prometheus Server]:::prom -->|Pulls / Scrapes Metrics| Node[Node Exporter]:::collector
+        Prom -->|Pulls / Scrapes Metrics| Cadvisor[cAdvisor]:::collector
+        Prom -->|Pulls / Scrapes Metrics| GoAPI[Go API Metrics]:::collector
+    end
 
-    Node -->|Scrapes| Prom[Prometheus Server]:::prom
-    Cadvisor -->|Scrapes| Prom
-    GoAPI -->|Scrapes| Prom
+    %% Визуализация (Grafana забирает данные из хранилищ)
+    Grafana[Grafana Dashboards]:::grafana -->|Queries Metrics| Prom
+    Grafana -->|Queries Logs| Loki
 
-    %% Визуализация и Алертинг (Справа)
-    Grafana[Grafana Dashboards]:::grafana
-    Prom -.->|Queries Metrics| Grafana
-    Loki -.->|Queries Logs| Grafana
+    %% Оповещения
+    Prom -->|Fires Alerts| AM[Alertmanager]:::alert
+    AM -->|Sends Notification| TG[Telegram Bot]:::tg
 
-    Prom -->|1. Fires Alerts| AM[Alertmanager]:::alert
-    AM -->|2. Sends Notification| TG[Telegram Bot]:::tg
-
-    %% Принудительное выравнивание для красивой сетки
+    %% Тонкая настройка стилей
     style Grafana fill:#F26122,stroke:#1F1F22,stroke-width:2px,color:#fff;
 ```
+
 
 
 # Monitoring Stack with Prometheus, Grafana, Loki & Alertmanager
